@@ -1,6 +1,6 @@
-const API_URL = "https://sua-api-aqui.com";
-
-let usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+const API_LOGIN_URL = "http://localhost:8080/login";
+const API_CADASTRO_URL = "http://localhost:8080/cadastro";
+const API_SERVICOS_URL = "http://localhost:8081";
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("loginForm");
@@ -11,17 +11,27 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const account = document.getElementById("accountNumber").value.trim();
+      const identificador = document.getElementById("accountNumber").value.trim();
       const password = document.getElementById("password").value.trim();
 
-      const user = usuarios.find(
-        (u) => u.conta === account && u.senha === password
-      );
-      if (user) {
-        window.location.href = "pages/home.html?account=" + account;
-      } else {
-        alert("Conta ou senha inválidos!");
-      }
+      fetch(API_LOGIN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          identificador: identificador,
+          senha: password
+        })
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro no login");
+          return res.json();
+        })
+        .then((data) => {
+          window.location.href = "pages/home.html?account=" + data.conta;
+        })
+        .catch(() => alert("Conta ou senha inválidos!"));
     });
   }
 
@@ -33,16 +43,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const cpf = document.getElementById("cpf").value;
       const senha = document.getElementById("newPassword").value;
 
-      let conta;
-      do {
-        conta = Math.floor(100 + Math.random() * 900).toString();
-      } while (usuarios.some((u) => u.conta === conta));
-
-      usuarios.push({ nome, endereco, cpf, senha, conta, saldo: 1000 });
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
-
-      alert("Cadastro realizado com sucesso! Seu número de conta é: " + conta);
-      window.location.href = "../index.html";
+      fetch(API_CADASTRO_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ nome, endereco, cpf, senha })
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro no cadastro");
+          return res.json();
+        })
+        .then((data) => {
+          alert("Cadastro realizado com sucesso! Sua conta é: " + data.conta);
+          window.location.href = "../index.html";
+        })
+        .catch(() => alert("Erro ao cadastrar usuário!"));
     });
   }
 
@@ -53,19 +69,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const destino = document.getElementById("destAccount").value.trim();
       const valor = parseFloat(document.getElementById("transferValue").value);
 
-      let remetente = usuarios.find((u) => u.conta === origem);
-      let recebedor = usuarios.find((u) => u.conta === destino);
-
-      if (!recebedor) return alert("Conta de destino inexistente!");
-      if (valor <= 0) return alert("Valor inválido!");
-      if (remetente.saldo < valor) return alert("Saldo insuficiente!");
-
-      remetente.saldo -= valor;
-      recebedor.saldo += valor;
-
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
-      alert("Transferência realizada com sucesso!");
-      location.reload();
+      fetch(`${API_SERVICOS_URL}/transferir`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ origem, destino, valor })
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro na transferência");
+          return res.json();
+        })
+        .then(() => {
+          alert("Transferência realizada com sucesso!");
+          location.reload();
+        })
+        .catch(() => alert("Erro ao transferir!"));
     });
   }
 
@@ -75,26 +94,33 @@ document.addEventListener("DOMContentLoaded", () => {
       const conta = new URLSearchParams(window.location.search).get("account");
       const valor = parseFloat(document.getElementById("depositValue").value);
 
-      let user = usuarios.find((u) => u.conta === conta);
-      if (!user) return alert("Conta não encontrada!");
-      if (valor <= 0) return alert("Valor inválido!");
-
-      user.saldo += valor;
-      localStorage.setItem("usuarios", JSON.stringify(usuarios));
-      alert("Depósito realizado com sucesso!");
-      location.reload();
+      fetch(`${API_SERVICOS_URL}/depositar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ conta, valor })
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Erro no depósito");
+          return res.json();
+        })
+        .then(() => {
+          alert("Depósito realizado com sucesso!");
+          location.reload();
+        })
+        .catch(() => alert("Erro ao depositar!"));
     });
   }
 
-  const accountParam = new URLSearchParams(window.location.search).get(
-    "account"
-  );
+  const accountParam = new URLSearchParams(window.location.search).get("account");
   if (accountParam) {
-    const user = usuarios.find((u) => u.conta === accountParam);
-    if (user) {
-      document.getElementById("accountDisplay").innerText = user.conta;
-      document.getElementById("balanceDisplay").innerText =
-        user.saldo.toFixed(2);
-    }
+    fetch(`${API_SERVICOS_URL}/usuario?conta=${accountParam}`)
+      .then(res => res.json())
+      .then(user => {
+        document.getElementById("accountDisplay").innerText = user.conta;
+        document.getElementById("balanceDisplay").innerText = user.saldo.toFixed(2);
+      })
+      .catch(() => alert("Erro ao carregar informações da conta"));
   }
 });

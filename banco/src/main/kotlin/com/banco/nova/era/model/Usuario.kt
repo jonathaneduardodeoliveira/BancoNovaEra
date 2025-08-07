@@ -1,16 +1,26 @@
 package com.banco.nova.era.model
 
 import jakarta.persistence.*
+import java.io.Serializable
 
 @Entity
-
 data class Usuario(
     @Id
     val cpf: String,
 
-    val senha: String,
-
     val nome: String,
 
-    var valor: Double,
-)
+    @Column(unique = true)
+    val conta: Int,
+
+    val senha: String,
+
+    val email: String,
+
+    val telefone: String,
+
+    @Embedded
+    val endereco: Endereco,
+
+    var valor: Double = 0.0
+) : Serializable

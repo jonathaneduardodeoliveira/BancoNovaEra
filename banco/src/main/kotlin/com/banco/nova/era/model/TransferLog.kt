@@ -1,29 +1,26 @@
 package com.banco.nova.era.model
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
 import java.time.LocalDateTime
 
 @Entity
 data class TransferLog(
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null,
 
     @Column(nullable = false)
-    val origem: String,
+    var origem: String = "",
 
     @Column(nullable = false)
-    val destino: String,
+    var destino: String = "",
 
     @Column(nullable = false)
-    val valor: Double,
+    var valor: Double = 0.0,
 
     @Column(nullable = false)
-    val timestamp: LocalDateTime = LocalDateTime.now(),
+    var timestamp: LocalDateTime = LocalDateTime.now(),
 
     @Column(nullable = false)
-    val status: String
+    var status: String = ""
 )

@@ -1,9 +1,9 @@
 package com.banco.nova.era.dto
 
 data class TransferDTO(
-    val origem: String,
-    val destino: String,
-    val valor: Double,
+    var origem: String = "",
+    var destino: String = "",
+    var valor: Double = 0.0
 )
 
 enum class TransferLogStatus(val status: String) {

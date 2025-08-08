@@ -6,21 +6,21 @@ import java.io.Serializable
 @Entity
 data class Usuario(
     @Id
-    val cpf: String = "",
+    var cpf: String = "",
 
-    val nome: String = "",
+    var nome: String = "",
 
     @Column(unique = true)
-    val conta: Int = 0,
+    var conta: Int = 0,
 
-    val senha: String = "",
+    var senha: String = "",
 
-    val email: String = "",
+    var email: String = "",
 
-    val telefone: String = "",
+    var telefone: String = "",
 
     @Embedded
-    val endereco: Endereco = Endereco(),
+    var endereco: Endereco = Endereco(),
 
     var valor: Double = 0.0
 ) : Serializable
